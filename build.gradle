@@ -22,9 +22,13 @@ dependencies {
 
 // https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11
 compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.2.0'
+//complie group: 'org.apache.spark', name: 'spark-streaming-kafka-0-10_2.11', version: '2.2.0'
 compile group: 'org.apache.spark', name: 'spark-mllib_2.11', version: '2.2.0'
 compile group: 'com.rometools', name: 'rome-modules', version: '1.9.0'
 compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.4'
+// https://mvnrepository.com/artifact/org.apache.spark/spark-sql-kafka-0-10
+compile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.11', version: '2.2.0'
+
 
 
 
