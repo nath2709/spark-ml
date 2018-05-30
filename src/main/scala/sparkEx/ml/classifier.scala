@@ -42,16 +42,15 @@ object classifier {
   val customFunct = udf(toUpper)
 
   def classify(): Unit = {
-    System.setProperty("hadoop.home.dir", "D:/winutils")
+    //    System.setProperty("hadoop.home.dir", "D:/winutils")
 
     val newsData = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data.csv")
 
-   
     val labelnewsData = newsData.withColumn("label", customFunct(newsData("label1"))).select("label", "description")
     val filterData = labelnewsData.filter(labelnewsData("label") !== 10)
-   
+
     val tokenizer = new Tokenizer().setInputCol("description").setOutputCol("words")
-   
+
     val hashingTF = new HashingTF()
       .setInputCol("words").setOutputCol("features").setNumFeatures(20)
 
@@ -63,16 +62,16 @@ object classifier {
       .setStages(Array(tokenizer, hashingTF, lr))
 
     val model = pipeline.fit(filterData)
-   
+
     model.write.overwrite().save("spark-logistic-regression-model")
- 
+
     val test = spark.createDataFrame(Seq(
       (1, "spark i j k"),
       (2, "l m n"),
       (4, "spark hadoop spark"),
       (0, "apache hadoop"))).toDF("label", "description")
 
-       //    // Make predictions on test documents.
+    //    // Make predictions on test documents.
     model.transform(test)
       .select("label", "description", "probability", "prediction")
       .collect()
