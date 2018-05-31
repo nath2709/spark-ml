@@ -8,7 +8,6 @@ import org.apache.http.client.methods.HttpGet
 import com.rometools.rome.io.XmlReader
 import com.rometools.rome.feed.synd.SyndEntry
 import java.util.function.Consumer
-import breeze.io.CSVWriter
 import java.io.BufferedWriter
 import java.io.FileWriter
 
@@ -44,9 +43,13 @@ object Newsfeed {
         val description = entry.getDescription.getValue
         println(f._1 + " => " + description)
         val temp = html.replaceAllIn(description, "")
-        println(f._1 + " => " + temp)
-        writer.write(f._1 + " = " + temp)
-        writer.write("\n")
+
+        if (!temp.isEmpty()) {
+          println(f._1 + " => " + temp)
+          writer.write(f._1 + " = " + temp)
+          writer.write("\n")
+        }
+
       }
 
     })
