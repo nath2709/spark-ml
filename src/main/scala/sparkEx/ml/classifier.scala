@@ -15,6 +15,8 @@ import org.apache.spark.sql.Encoders
 import org.apache.spark.sql.functions._ // for `when`
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.ml.feature.StopWordsRemover
+import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.expressions.Window
 
 object classifier {
 
@@ -53,7 +55,8 @@ object classifier {
   val removenonalpha = udf(remove_num_splchars)
   //
   def classify(): Unit = {
-    //    //    System.setProperty("hadoop.home.dir", "D:/winutils")
+
+    System.setProperty("hadoop.home.dir", "D:/winutils")
     //
     val newsData = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data.csv")
 
@@ -62,59 +65,57 @@ object classifier {
       withColumn("clean_description", removenonalpha(newsData("description")))
       .select("label", "clean_description")
 
-//    labelnewsData.printSchema()
+    //    labelnewsData.printSchema()
     val filterData = labelnewsData.filter(labelnewsData("label") !== 10)
 
     val tokenizer = new Tokenizer().setInputCol("clean_description").setOutputCol("words")
-    val tokenDf = tokenizer.transform(filterData)
+    //    val tokenDf = tokenizer.transform(filterData)
     val remover = new StopWordsRemover().setInputCol("words").setOutputCol("words_without_stopwords")
-    val df = remover.transform(tokenDf)
-    //
-    df.show(false)
+    //    val df = remover.transform(tokenDf)
 
-    //    val hashingTF = new HashingTF()
-    //      .setInputCol("words").setOutputCol("features").setNumFeatures(20)
+    val hashingTF = new HashingTF()
+      .setInputCol("words_without_stopwords").setOutputCol("features").setNumFeatures(20)
     //
-    //    val lr = new LogisticRegression()
-    //      .setMaxIter(10)
-    //      .setRegParam(0.001)
-    //
-    //    val pipeline = new Pipeline()
-    //      .setStages(Array(tokenizer, hashingTF, lr))
-    //
-    //    val model = pipeline.fit(filterData)
-    //
-    //    model.write.overwrite().save("spark-logistic-regression-model")
-    //
-    //    val test = spark.createDataFrame(Seq(
-    //      (1, "spark i j k"),
-    //      (2, "l m n"),
-    //      (4, "spark hadoop spark"),
-    //      (0, "apache hadoop"))).toDF("label", "description")
-    //
-    //    //    // Make predictions on test documents.
-    //    model.transform(test)
-    //      .select("label", "description", "probability", "prediction")
-    //      .collect()
-    //      .foreach {
-    //        println
-    //        //        case Row(label: Long, sentence: String, prob: Vector, prediction: Double) =>
-    //        //          println(s"($label, $sentence) --> prob=$prob, prediction=$prediction")
-    //      }
+    val lr = new LogisticRegression()
+      .setMaxIter(10)
+      .setRegParam(0.001)
+    val pipeline = new Pipeline()
+      .setStages(Array(tokenizer, remover, hashingTF, lr))
+
+    val model = pipeline.fit(filterData)
+
+    model.write.overwrite().save("news_classifier_lr_model")
+
   }
 
-  def testData(): DataFrame = {
-    val newsDatatest = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data2.csv")
-    val labelnewsDatatest = newsDatatest.withColumn("label", news_class_to_label_udf(newsDatatest("label1"))).select("label", "description")
+  def generateTestData(): Unit = {
+    import spark.implicits._
+    val newsSchema = Encoders.product[newsfeeds].schema
+    val newsSchema_idx = Encoders.product[newsfeedsidx].schema
 
-    labelnewsDatatest.select("description")
+    //    convert to dataset
+    val newsDatatest = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data/sample2.txt").as[newsfeeds]
+    val newsDatawithId = newsDatatest.rdd.zipWithIndex().map(f => newsfeedsidx(f._1.label1, f._1.description, f._2)).toDS()
+    //    newsDatawithId.printSchema()
+
+    //    window function, specify window
+    val row_window = Window.partitionBy($"label").orderBy($"idx")
+    //row number
+    val row_q = row_number().over(row_window)
+
+    //    reduce number of partition from 200(default) to 1
+    val temp = newsDatawithId.select($"*", row_q as "row").where($"row" <= 2).repartition(1)
+    temp.write.csv("data/op")
   }
 
   def main(args: Array[String]): Unit = {
 
-    //   testData()
-    classify()
+    generateTestData()
+    //    classify()
   }
+
+  case class newsfeeds(label1: String, description: String)
+  case class newsfeedsidx(label: String, description: String, idx: Long)
 }
 
-case class newsfeeds(label1: String, description: String)
+

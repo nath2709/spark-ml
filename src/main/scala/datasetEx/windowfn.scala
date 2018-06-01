@@ -9,7 +9,6 @@ import org.apache.spark.sql.functions._
 object windowfn {
 
   def windowfnex(): Unit = {
-
     val spark = SparkSession.builder().appName("window_fn_example").
       master("local").config("spark.driver.bindAddress", "127.0.0.1").getOrCreate()
     import spark.implicits._
@@ -49,6 +48,6 @@ object windowfn {
     windowfnex()
 
   }
-
   case class employee(id: Int, first_name: String, last_name: String, department: String, salary: Int, gender: String)
+
 }
