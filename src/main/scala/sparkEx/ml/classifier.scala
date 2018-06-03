@@ -54,9 +54,8 @@ object classifier {
   val news_class_to_label_udf = udf(news_class_to_label)
   val removenonalpha = udf(remove_num_splchars)
   //
+  System.setProperty("hadoop.home.dir", "D:/winutils")
   def classify(): Unit = {
-
-    System.setProperty("hadoop.home.dir", "D:/winutils")
     //
     val newsData = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data.csv")
 
@@ -88,6 +87,27 @@ object classifier {
 
   }
 
+  def testclassfiermodel(): Unit = {
+    import spark.implicits._
+    val newsclassifier = PipelineModel.load("news_classifier_lr_model")
+
+    val newsData = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data/op/*").as[newsfeeds]
+
+    val labelnewsData = newsData.
+      withColumn("label", news_class_to_label_udf(newsData("label1"))).
+      withColumn("clean_description", removenonalpha(newsData("description")))
+      .select("label", "clean_description")
+
+    val predictedLableNum = newsclassifier.transform(labelnewsData)
+      .select("clean_description", "probability", "prediction")
+
+    //    predictedLableNum.show()
+    //
+    //    val labledData = predictedLableNum.withColumn("category", customFunct(predictedLableNum("prediction"))).select("description", "probability", "prediction", "category")
+    //    val labledDataJson = labledData.select((to_json(struct("description", "category"))).alias("value"))
+
+  }
+
   def generateTestData(): Unit = {
     import spark.implicits._
     val newsSchema = Encoders.product[newsfeeds].schema
@@ -105,13 +125,14 @@ object classifier {
 
     //    reduce number of partition from 200(default) to 1
     val temp = newsDatawithId.select($"*", row_q as "row").where($"row" <= 2).repartition(1)
-    temp.write.csv("data/op")
+    temp.write.format("csv").option("delimiter", "=").save("data/op")
   }
 
   def main(args: Array[String]): Unit = {
 
-    generateTestData()
+    //    generateTestData()
     //    classify()
+    testclassfiermodel()
   }
 
   case class newsfeeds(label1: String, description: String)

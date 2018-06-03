@@ -34,36 +34,26 @@ object kafkaConsumer {
 
     val spark = SparkSession
       .builder
-      .appName("StructuredNetworkWordCount").master("local[*]")
+      .appName("newsclassifier").master("local[*]")
       .getOrCreate()
 
     import spark.implicits._
-    val userSchema = new StructType().add("value", "string").add("description", "string")
+    val userSchema = new StructType().add("value", "string").add("clean_description", "string")
     val csvDF = spark
       .readStream
       .option("sep", "=").option("fileNameOnly", true)
       .schema(userSchema) // Specify schema of the csv files
-      .csv("file:///D:/scala-eclipse/sparkEx/data/*")
+      .csv("sample1/*")
 
-    val temp = csvDF.select("description")
-    val nonempty = temp.as[String].filter(_ != "").map(_.toLowerCase())
-    //    temp.show()
-    val words = nonempty.as[String].flatMap(_.split(" "))
-    val wordCounts = words.groupBy("value").count()
-    val tmp = wordCounts.select((to_json(struct("count", "value"))).alias("value"))
-    tmp.printSchema()
+    val temp = csvDF.select("clean_description")
 
-    //    val test = testData
-    //
-    //    // Make predictions on test documents.
-
-    val sameModel = PipelineModel.load("spark-logistic-regression-model")
+    val sameModel = PipelineModel.load("news_classifier_lr_model")
 
     val predictedLableNum = sameModel.transform(temp)
-      .select("description", "probability", "prediction")
+      .select("clean_description", "probability", "prediction")
 
-    val labledData = predictedLableNum.withColumn("category", customFunct(predictedLableNum("prediction"))).select("description", "probability", "prediction", "category")
-    val labledDataJson = labledData.select((to_json(struct("description", "category"))).alias("value"))
+    val labledData = predictedLableNum.withColumn("category", customFunct(predictedLableNum("prediction"))).select("clean_description", "probability", "prediction", "category")
+    val labledDataJson = labledData.select((to_json(struct("clean_description", "category"))).alias("value"))
 
     val query = labledDataJson
       .writeStream.outputMode("append")
