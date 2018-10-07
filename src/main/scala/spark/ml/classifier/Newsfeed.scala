@@ -1,4 +1,4 @@
-package sparkEx.ml
+package spark.ml.classifier
 
 import java.net.URL;
 import java.io.InputStreamReader;
@@ -15,11 +15,11 @@ object Newsfeed {
 
   def main(args: Array[String]): Unit = {
 
-    val urlmap = List("sports" -> "https://timesofindia.indiatimes.com/rssfeeds/4719161.cms",
-      "education" -> "https://timesofindia.indiatimes.com/rssfeeds/913168846.cms",
-      "business" -> "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",
-      "tech" -> "https://timesofindia.indiatimes.com/rssfeeds/5880659.cms",
-      "health" -> "https://timesofindia.indiatimes.com/rssfeeds/3908999.cms")
+    val urlmap = List("Sports" -> "https://timesofindia.indiatimes.com/rssfeeds/4719161.cms",
+      "Education" -> "https://timesofindia.indiatimes.com/rssfeeds/913168846.cms",
+      "Business" -> "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",
+      "Technology" -> "https://timesofindia.indiatimes.com/rssfeeds/5880659.cms",
+      "Health" -> "https://timesofindia.indiatimes.com/rssfeeds/3908999.cms")
 
     val html = """<a.+\/a>""".r
     val client = HttpClients.createMinimal()

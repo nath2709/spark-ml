@@ -1,4 +1,4 @@
-package sparkEx.ml
+package spark.ml.classifier
 
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.Seconds
@@ -17,11 +17,11 @@ object kafkaConsumer {
   val toCategory: Double => String = { s =>
 
     s match {
-      case 0.0 => "Health"
-      case 1.0 => "education"
-      case 2.0 => "tech"
-      case 3.0 => "health"
-      case 4.0 => "business"
+      case 0.0 => "Sports"
+      case 1.0 => "Education"
+      case 2.0 => "Technology"
+      case 3.0 => "Health"
+      case 4.0 => "Business"
 
     }
   }
@@ -61,11 +61,6 @@ object kafkaConsumer {
       .option("kafka.bootstrap.servers", "localhost:9092")
       .option("topic", "test").option("checkpointLocation", "chk")
       .start()
-
-    //    val query = labledDataJson.writeStream
-    //      .outputMode("append")
-    //      .format("console")
-    //      .start()
 
     query.awaitTermination()
   }

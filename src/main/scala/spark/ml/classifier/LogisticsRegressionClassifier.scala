@@ -1,4 +1,4 @@
-package sparkEx.ml
+package spark.ml.classifier
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.{ DataFrame }
@@ -18,7 +18,7 @@ import org.apache.spark.ml.feature.StopWordsRemover
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.expressions.Window
 
-object classifier {
+object LogisticsRegressionClassifier {
 
   val spark = SparkSession
     .builder().master("local")
@@ -30,11 +30,11 @@ object classifier {
   val news_class_to_label: String => Int = { s =>
 
     s.trim match {
-      case "sports"    => 0
-      case "education" => 1
-      case "tech"      => 2
-      case "health"    => 3
-      case "business"  => 4
+      case "Sports"     => 0
+      case "Education"  => 1
+      case "Technology" => 2
+      case "Health"     => 3
+      case "Business"   => 4
       case _ => {
         10
       }
@@ -53,8 +53,9 @@ object classifier {
   val op = remove_num_splchars("Tickets worth Rupees 52,36,000 were unsold.")
   val news_class_to_label_udf = udf(news_class_to_label)
   val removenonalpha = udf(remove_num_splchars)
-  //
+  //to run in widows envirnoment
   System.setProperty("hadoop.home.dir", "D:/winutils")
+
   def classify(): Unit = {
     //
     val newsData = spark.read.format("csv").option("delimiter", "=").schema(newsSchema).load("data.csv")
@@ -101,10 +102,8 @@ object classifier {
     val predictedLableNum = newsclassifier.transform(labelnewsData)
       .select("clean_description", "probability", "prediction")
 
-    //    predictedLableNum.show()
+    predictedLableNum.show()
     //
-    //    val labledData = predictedLableNum.withColumn("category", customFunct(predictedLableNum("prediction"))).select("description", "probability", "prediction", "category")
-    //    val labledDataJson = labledData.select((to_json(struct("description", "category"))).alias("value"))
 
   }
 
@@ -130,9 +129,9 @@ object classifier {
 
   def main(args: Array[String]): Unit = {
 
-    //    generateTestData()
     //    classify()
-    testclassfiermodel()
+    //    generateTestData()
+    //    testclassfiermodel()
   }
 
   case class newsfeeds(label1: String, description: String)

@@ -24,7 +24,6 @@ object windowfn {
     //    dense rank query
     val dense_q = dense_rank().over(exp)
     employee.select($"*", dense_q as "rank").show
-
     //   percent_rank
     //     val percent_q = percent_rank().over(exp)
     //     employee.select($"*",percent_q as "percent_rank").show
