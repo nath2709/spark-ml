@@ -1,4 +1,4 @@
-package spark.ml.classifier
+package ml.classifier
 
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.Seconds

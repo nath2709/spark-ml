@@ -12,16 +12,20 @@ object DataSetEx {
 
     appendDF()
 //    loadtemptable()
-    updateDF()
+//    updateDF()
   }
 
   def appendDF(): Unit = {
 
     val schema = Encoders.product[person].schema
     val personDs = spark.read.option("header", "true").schema(schema).csv("data/person_data.csv").as[person]
+    import org.apache.spark.sql.functions._
+    val col = spark
+   val temp =  personDs.withColumn("temp_col", lit("hello") )
+   temp.show()
     //    personDs.foreach(p => println(p))
     //     personDs.printSchema()
-    personDs.createOrReplaceTempView("person")
+//    personDs.createOrReplaceTempView("person")
   }
 
   def loadtemptable(): Unit = {

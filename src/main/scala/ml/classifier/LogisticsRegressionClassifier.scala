@@ -1,4 +1,4 @@
-package spark.ml.classifier
+package ml.classifier
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.{ DataFrame }

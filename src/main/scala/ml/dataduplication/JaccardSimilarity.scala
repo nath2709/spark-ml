@@ -1,4 +1,4 @@
-package spark.ml.dataduplication
+package ml.dataduplication
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.Encoders
@@ -106,9 +106,6 @@ object DataDedup {
     //
 
     val minhash = new MinHashLSH().setNumHashTables(3).setInputCol("result").setOutputCol("hashes")
-    //    //
-    //    //    val pipeline = new Pipeline().setStages(Array(tokenizer, stopwordstransformer, hashigTf, idf))
-    //    //    //
     val orgminhashmdl = minhash.fit(orgmdl)
     //    //    //
     val orghasheddata = orgminhashmdl.transform(orgmdl)

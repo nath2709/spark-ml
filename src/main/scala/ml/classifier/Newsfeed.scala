@@ -1,4 +1,4 @@
-package spark.ml.classifier
+package ml.classifier
 
 import java.net.URL;
 import java.io.InputStreamReader;
